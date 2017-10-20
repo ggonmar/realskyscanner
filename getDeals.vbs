@@ -1,20 +1,81 @@
 'initialData
 '------------------------------------------------------------------
-Dim weeksFromNow: weeksFromNow = 3
+Dim weeksFromNow: weeksFromNow = 0
 Dim pathToFile: pathToFile="D:\Downloads\getDealsWeekend.txt"
 Dim onStartofWeekend: onStartofWeekend="check for the next weekend already"
+Dim origen : origen = "bcn"
+Dim urlbase: urlbase="https://www.skyscanner.es/transporte/vuelos-desde/"
+'-------
+
+
+Launch("firefox")
+
+
+'------------------------------------------------------------------
+' Sub to launch browsers with the designated url 
+'------------------------------------------------------------------
+Sub launch(browser)
+	Dim sh
+	Set sh = CreateObject("WScript.Shell")
+	Select Case browser
+		Case "chrome"
+			sh.Run "chrome -url " + getUrl()
+		Case "ie"
+			sh.Run "iexplore.exe " + getUrl()
+		case "firefox"
+			Dim ff : ff="""C:\Program Files (x86)\Mozilla Firefox\firefox.exe"""
+			sh.Run ff & " " & getUrl()
+		
+		case else
+			WScript.echo "Browser not found"
+	End Select
+End Sub
+
+'------------------------------------------------------------------
+' Function for obtaining the url for a search
+'------------------------------------------------------------------
+Function getUrl()
+	Dim Otoday : Otoday = now()
+	Ostart=checkNextWeekendDate()
+	Stoday=sprintf("{0:yyMMdd}", Array(Otoday))
+	Sstart=sprintf("{0:yyMMdd}", Array(Ostart))
+
+	If Stoday > Sstart Or (Stoday = Sstart And onStartofWeekend = "check for the next weekend already") Then
+		Ostart=updateWeekend(Ostart+7)
+		'WScript.echo "updating file that says when is next weekend."
+	End If
+
+    ''Control for how many weeks from now
+	Ostart = Ostart + (7*weeksFromNow)
+
+	
+	Oend = Ostart + 2
+
+	Sstart=sprintf("{0:yyMMdd}", Array(Ostart))
+	Send=sprintf("{0:yyMMdd}", Array(Oend))
+
+
+	'WScript.echo "Weeks from now wanted: " & weeksFromNow &  vbNewLine  & "Today: " & Otoday & vbNewLine & "Start: " & Ostart & vbNewLine & "End:   " & Oend 
+
+
+	'' Form url
+	getUrl = urlbase + origen+"/"+ Sstart +"/"+ Send
+	'WScript.echo getUrl
+	
+End Function
+
 
 '------------------------------------------------------------------
 ' Function for formatting dates -
 '              sprintf("{0:yyMMdd}", Array(dt)) -> YYMMDD
 '------------------------------------------------------------------
-Dim g_oSB : Set g_oSB = CreateObject("System.Text.StringBuilder")
-
 Function sprintf(sFmt, aData)
+	Dim g_oSB : Set g_oSB = CreateObject("System.Text.StringBuilder")
    g_oSB.AppendFormat_4 sFmt, (aData)
    sprintf = g_oSB.ToString()
    g_oSB.Length = 0
 End Function
+
 
 '-------------------------------------------------------------------
 'Read last Weekend date from file
@@ -38,65 +99,6 @@ Function updateWeekend(s)
 End Function
 
 
-'-------------------------------------------------------------------
-' Algorithm to select correct weekend
-'-------------------------------------------------------------------
-Dim Otoday : Otoday = now()
-Ostart=checkNextWeekendDate()
-Stoday=sprintf("{0:yyMMdd}", Array(Otoday))
-Sstart=sprintf("{0:yyMMdd}", Array(Ostart))
-
-'WScript.echo "about to update because: " & vbNewLine & Otoday & vbNewLine & Ostart & vbNewLine & "--------" & vbNewLine & Stoday & vbNewLine & Sstart & vbNewLine & "---------" & onStartofWeekend
-
-If Stoday > Sstart Or (Stoday = Sstart And onStartofWeekend = "check for the next weekend already") Then
-	Ostart=updateWeekend(Ostart+7)
-	'WScript.echo "updating when is next weekend expected"
-End If
-
-Ostart = Ostart + (7*weeksFromNow)
-Oend = Ostart + 2
-
-Sstart=sprintf("{0:yyMMdd}", Array(Ostart))
-Send=sprintf("{0:yyMMdd}", Array(Oend))
 
 
-'WScript.echo "Weeks from now wanted: " & weeksFromNow &  vbNewLine  & "Today: " & Otoday & vbNewLine & "Start: " & Ostart & vbNewLine & "End:   " & Oend 
-
-WScript.echo "Checking for weekend " + Sstart + "-" + Send
-
-
-
-
-' If Stoday < Sstart
-' '	WScript.echo Stoday + " is earlier than " + Sstart + vbNewLine + "The weekend we are considering is correct"
-' Elseif Stoday = Sstart Then
-	' If onstarts = "check for the next weekend already" Then
-		' 'WScript.echo Stoday + " is weekend already, check for the next weekend"
-		' Ostart=updateWeekend(Ostart+7)
-	' Else		
-	' '	WScript.echo Stoday + " is weekend already, but im feeling like travelling today "
-	' End If
-' Else
-' '	WScript.echo Stoday + " is later than " + Sstart + vbNewLine + "Updating weekend value and checking for it"
-	' Ostart=updateWeekend(Ostart+7)
-	' Sstart=sprintf("{0:yyMMdd}", Array(Ostart))
-' '	WScript.echo "Next weekend will be " + Sstart
-' End If
-
-'Send=sprintf("{0:yyMMdd}", Array(Ostart+2))
-
-'WScript.echo "Checking for weekend " + Sstart + "-" + Send
-
-	
-
-'-------------------------------------------------------------------
-' Form url and launch
-'-------------------------------------------------------------------
-Dim origen : origen = "bcn"
-Dim url: url="https://www.skyscanner.es/transporte/vuelos-desde/" + origen+"/"+ Sstart +"/"+ Send
-'WScript.echo url
-
-Dim browobj
-Set browobj = CreateObject("WScript.Shell")
-browobj.Run "chrome -url " + url
 
