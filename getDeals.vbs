@@ -8,7 +8,7 @@ Dim urlbase: urlbase="https://www.skyscanner.es/transporte/vuelos-desde/"
 '-------
 
 
-Launch("firefox")
+Launch("chrome")
 
 
 '------------------------------------------------------------------
@@ -40,8 +40,13 @@ Function getUrl()
 	Stoday=sprintf("{0:yyMMdd}", Array(Otoday))
 	Sstart=sprintf("{0:yyMMdd}", Array(Ostart))
 
+	
 	If Stoday > Sstart Or (Stoday = Sstart And onStartofWeekend = "check for the next weekend already") Then
-		Ostart=updateWeekend(Ostart+7)
+		While Stoday > Sstart Or (Stoday = Sstart And onStartofWeekend = "check for the next weekend already")
+			Ostart=updateWeekend(Ostart+7)
+			Sstart=sprintf("{0:yyMMdd}", Array(Ostart))
+			WScript.Sleep(300)
+		Wend
 		'WScript.echo "updating file that says when is next weekend."
 	End If
 
